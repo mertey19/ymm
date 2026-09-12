@@ -1,0 +1,40 @@
+{
+  "name": "karen-ymm",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "postbuild": "node scripts/normalize-static-export.mjs",
+    "start": "serve out -l 3000",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:qa": "node scripts/qa.mjs",
+    "test:performance": "node scripts/performance.mjs",
+    "format": "prettier --write src scripts"
+  },
+  "dependencies": {
+    "lucide-react": "^0.577.0",
+    "next": "^16.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@fontsource-variable/inter": "^5.2.0",
+    "@fontsource-variable/manrope": "^5.2.0",
+    "@playwright/test": "^1.58.0",
+    "@tailwindcss/postcss": "^4.2.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.2.0",
+    "lighthouse": "^13.4.1",
+    "prettier": "^3.9.6",
+    "serve": "^14.2.0",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.2.0",
+    "typescript": "^5.9.0"
+  }
+}

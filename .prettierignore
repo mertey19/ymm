@@ -1,0 +1,6 @@
+node_modules
+.next
+out
+.sites-runtime
+test-results
+package-lock.json
