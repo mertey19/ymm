@@ -1,0 +1,226 @@
+/* Full-width photographic opening, with navigation and copy over the image. */
+.site-header-overlay {
+  position: fixed;
+  inset: 0 0 auto;
+  background: rgb(6 23 39 / 36%);
+  border-bottom-color: rgb(255 255 255 / 16%);
+  transition:
+    background 250ms,
+    box-shadow 250ms;
+}
+.site-header-overlay.is-scrolled {
+  background: #0b1f33;
+  box-shadow: 0 3px 18px rgb(0 0 0 / 10%);
+}
+.site-header-overlay .wordmark,
+.site-header-overlay .nav-link,
+.site-header-overlay .menu-toggle {
+  color: white;
+}
+.site-header-overlay .nav-link:hover {
+  color: #dfc8a4;
+}
+.site-header-overlay .header-cta {
+  background: transparent;
+  border-color: rgb(255 255 255 / 55%);
+}
+.site-header-overlay .header-cta:hover {
+  background: rgb(255 255 255 / 12%);
+}
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: max(740px, 100svh);
+  background: var(--navy);
+  overflow: hidden;
+}
+.hero-image {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-image img {
+  object-fit: cover;
+  object-position: center 48%;
+}
+.hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(6 23 39 / 89%) 0%,
+    rgb(6 23 39 / 77%) 40%,
+    rgb(6 23 39 / 32%) 100%
+  );
+}
+.hero-copy {
+  position: relative;
+  width: min(1280px, calc(100% - 112px));
+  margin-inline: auto;
+  padding: 160px 0 94px;
+}
+.hero-copy > .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 27px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #dfc8a4;
+}
+.hero-copy > .eyebrow > span {
+  width: 25px;
+  height: 1px;
+  background: var(--gold);
+}
+.hero h1 {
+  max-width: 740px;
+  font-size: clamp(48px, 4.35vw, 66px);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.045em;
+  color: white;
+  text-wrap: balance;
+}
+.hero h1 > span {
+  color: #d5b687;
+}
+.hero-description {
+  max-width: 610px;
+  margin-top: 27px;
+  color: #e0e7ee;
+  font-size: 17px;
+  line-height: 1.85;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+  margin-top: 34px;
+}
+.hero-actions .button {
+  padding: 16px 24px;
+  gap: 24px;
+  font-size: 13px;
+}
+.hero-secondary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 13px;
+}
+.hero-secondary:hover {
+  color: #dfc8a4;
+}
+.hero-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 55px;
+  color: #d4dfe9;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+}
+.hero-explore svg {
+  color: #d5b687;
+}
+@media (max-width: 1199px) {
+  .hero-copy {
+    width: calc(100% - 72px);
+  }
+  .hero h1 {
+    max-width: 690px;
+  }
+}
+@media (max-width: 767px) {
+  .site-header-overlay .main-nav.mobile-open {
+    background: var(--navy);
+    border-color: #ffffff30;
+  }
+  .site-header-overlay .nav-link {
+    border-bottom-color: #ffffff25;
+  }
+  .site-header-overlay .dropdown {
+    background: transparent;
+  }
+  .site-header-overlay .dropdown a {
+    color: #e0e7ee;
+  }
+  .site-header-overlay .dropdown a:hover {
+    background: #ffffff15;
+    color: white;
+  }
+  .hero {
+    min-height: max(720px, 100svh);
+  }
+  .hero-copy {
+    width: calc(100% - 40px);
+    padding: 128px 0 62px;
+  }
+  .hero-image img {
+    object-position: 60% center;
+  }
+  .hero-image::after {
+    background: rgb(6 23 39 / 78%);
+  }
+  .hero-copy > .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    gap: 9px;
+  }
+  .hero-copy > .eyebrow > span {
+    width: 18px;
+  }
+  .hero h1 {
+    max-width: 580px;
+    font-size: clamp(38px, 7.8vw, 56px);
+    line-height: 1.17;
+    letter-spacing: -0.04em;
+    text-wrap: initial;
+  }
+  .hero-description {
+    font-size: 16px;
+    margin-top: 24px;
+  }
+  .hero-actions {
+    gap: 23px;
+    margin-top: 29px;
+  }
+  .hero-explore {
+    margin-top: 38px;
+    font-size: 9px;
+  }
+}
+@media (max-width: 479px) {
+  .hero h1 {
+    font-size: 42px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-copy > .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+  .hero-copy > .eyebrow > span {
+    display: none;
+  }
+  .hero-secondary {
+    font-size: 12px;
+  }
+}
+@media (max-width: 359px) {
+  .hero h1 {
+    font-size: 36px;
+  }
+  .hero-copy {
+    padding-top: 120px;
+  }
+}

@@ -36,10 +36,8 @@ export default function Home() {
             <span /> KAREN YMM · YEMİNLİ MALİ MÜŞAVİRLİK
           </p>
           <h1>
-            Vergi ve Finansal
-            <br className="desktop-break" /> Süreçlerinizde
-            <br className="desktop-break" /> <span>Güvenilir</span> <br className="desktop-break" />{' '}
-            Çözüm Ortağınız<span className="hero-dot">.</span>
+            Vergi ve Finansal Süreçlerinizde <span>Güvenilir</span> Çözüm Ortağınız
+            <span className="hero-dot">.</span>
           </h1>
           <p className="hero-description">
             Karen YMM; yeminli mali müşavirlik, vergi, tasdik, denetim ve mali danışmanlık
@@ -60,25 +58,8 @@ export default function Home() {
             UZMANLIĞIMIZI KEŞFEDİN
           </a>
         </div>
-        <div className="hero-image">
-          <Image
-            src="/images/hero.webp"
-            alt="Çağdaş bir ofis binasının cam ve çelik mimari detayları"
-            fill
-            priority
-            sizes="(max-width: 767px) 100vw, 46vw"
-          />
-          <div className="hero-image-caption">
-            <span>
-              SAĞLAM BİR TEMEL.
-              <br />
-              GÜVENLİ BİR GELECEK.
-            </span>
-            <span className="caption-line" />
-          </div>
-          <div className="image-tag">
-            KAREN YMM <span>BAĞIMSIZ BAKIŞ. GÜÇLÜ YAKLAŞIM.</span>
-          </div>
+        <div className="hero-image" aria-hidden="true">
+          <Image src="/images/hero.webp" alt="" fill priority sizes="100vw" />
         </div>
       </section>
       <div className="trust-band">

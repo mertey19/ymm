@@ -1,9 +1,15 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
 import type { NavigationItem } from '@/data/navigation';
+function subscribeScroll(callback: () => void) {
+  window.addEventListener('scroll', callback, { passive: true });
+  return () => window.removeEventListener('scroll', callback);
+}
+const getScrollSnapshot = () => window.scrollY > 24;
+const getServerScrollSnapshot = () => false;
 export function Wordmark() {
   return (
     <span className="wordmark">
@@ -18,6 +24,11 @@ export function Header({ items }: { items: NavigationItem[] }) {
   const [mobile, setMobile] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const path = usePathname();
+  const scrolled = useSyncExternalStore(
+    subscribeScroll,
+    getScrollSnapshot,
+    getServerScrollSnapshot,
+  );
   const toggle = useRef<HTMLButtonElement>(null);
   function close() {
     setMobile(false);
@@ -25,7 +36,7 @@ export function Header({ items }: { items: NavigationItem[] }) {
   }
   return (
     <header
-      className="site-header"
+      className={`site-header${path === '/' ? ' site-header-overlay' : ''}${scrolled ? ' is-scrolled' : ''}`}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           const opener = (e.target as HTMLElement).closest('.nav-item')?.querySelector('button');

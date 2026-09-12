@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@fontsource-variable/manrope';
 import '@fontsource-variable/inter';
 import './globals.css';
+import './hero.css';
 import { Header } from '@/components/header';
 import { navigation } from '@/data/navigation';
 import { Footer } from '@/components/footer';
