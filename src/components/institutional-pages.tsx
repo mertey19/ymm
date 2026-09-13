@@ -224,9 +224,10 @@ export function Policy({ kind }: { kind: string }) {
           </p>
           <h2>Teknik Hizmetler</h2>
           <p>
-            Yönetim paneli yalnızca site sahibine açıktır. Giriş, barındırma hizmetinin ChatGPT
-            oturumuyla doğrulanır. Yönetici yetkisinin korunması için siteye özgü kullanıcı kimliği;
-            siteyi güncel tutmak için yayımlanan içerikler, taslaklar ve son kayıt zamanı saklanır.
+            Yönetim paneli kullanıcı adı ve şifreyle korunur. Oturumun sürdürülmesi için zorunlu
+            bir oturum çerezi kullanılır. Şifrenin özeti, süreli oturum kayıtları ve giriş denemesi
+            sınırları güvenli erişim için; içerikler, taslaklar ve son kayıt zamanı ise siteyi
+            güncel tutmak için saklanır.
           </p>
           <p>
             Barındırma sağlayıcısı, sitenin sunulması ve erişim güvenliği için teknik kayıtlar

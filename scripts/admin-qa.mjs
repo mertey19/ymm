@@ -14,8 +14,14 @@ try {
   expect((await api('/api/admin/content/')).status()).toBe(401);
   expect((await api('/api/admin/content/',{headers:{'oai-authenticated-user-id':'local_seedy','oai-authenticated-user-email':'seedy@sites.test'}})).status()).toBe(401);
   expect((await put({data:{},revision:0})).status()).toBe(401);
-  await page.goto(origin+'/yonetim/');await expect(page.getByRole('link',{name:'ChatGPT ile giriş yap'})).toBeVisible();
-  await page.getByRole('link',{name:'ChatGPT ile giriş yap'}).click();await expect(page.getByRole('heading',{name:'Genel bakış',exact:true})).toBeVisible();
+  await page.goto(origin+'/yonetim/',{waitUntil:'networkidle'});await expect(page.getByRole('heading',{name:'Yönetici girişi'})).toBeVisible();
+  await page.getByLabel('Kullanıcı adı',{exact:true}).fill('admin');
+  await page.getByLabel('Şifre',{exact:true}).fill('wrong-password');
+  await page.getByRole('button',{name:'Giriş yap',exact:true}).click();
+  await expect(page.getByRole('alert')).toHaveText('Kullanıcı adı veya şifre hatalı.');
+  await page.getByLabel('Şifre',{exact:true}).fill('Local-Test-Password-Only');
+  await page.getByRole('button',{name:'Giriş yap',exact:true}).click();await expect(page.getByRole('heading',{name:'Genel bakış',exact:true})).toBeVisible();
+  const session=(await context.cookies()).find(c=>c.name==='karen_admin');expect(session.httpOnly).toBe(true);expect(session.sameSite).toBe('Strict');
   await page.locator('.admin-shell[data-ready=true]').waitFor();
   initial=await (await api('/api/admin/content/')).json();
   expect((await put(initial,{Origin:'https://untrusted.example'})).status()).toBe(403);
@@ -49,8 +55,14 @@ try {
     const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations.map(v=>v.id)).toEqual([]);
   }
   expect(errors).toEqual([]);
-  console.log('PASS: anonymous/spoofed access, CSRF, validation, save/reload, public rendering, stale edit, draft/publish/delete, sitemap, responsive and accessibility.');
+  console.log('PASS: password login, anonymous/spoofed access, HttpOnly session, CSRF, validation, save/reload, public rendering, stale edit, draft/publish/delete, sitemap, responsive and accessibility.');
 } finally {
-  if(initial){const latest=await (await api('/api/admin/content/')).json();const restored=await put({...initial,revision:latest.revision});if(restored.status()!==200)throw new Error('Test data restore failed');}
+  if(initial){const latest=await (await api('/api/admin/content/')).json();const restored=await put({...initial,revision:latest.revision});if(restored.status()!==200)throw new Error('Test data restore failed');
+    const old=(await context.cookies()).find(c=>c.name==='karen_admin');
+    await page.getByRole('button',{name:'Çıkış yap',exact:true}).click();await expect(page.getByRole('heading',{name:'Yönetici girişi'})).toBeVisible();
+    expect((await api('/api/admin/content/')).status()).toBe(401);
+    expect((await api('/api/admin/content/',{headers:{Cookie:`karen_admin=${old.value}`}})).status()).toBe(401);
+    console.log('PASS: logout revokes the stored session, including replay of its old cookie.');
+  }
   await browser.close();
 }

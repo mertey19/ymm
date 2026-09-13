@@ -1,6 +1,7 @@
 'use client';
 /* Dispatch-owned sign-out and unsaved-edit navigation require full page loads. */
 /* eslint-disable @next/next/no-html-link-for-pages */
+/* eslint-disable @next/next/no-location-assign-relative-destination -- Reload server-authenticated state after revoking the session. */
 import { useEffect, useState } from 'react';
 import {
   ArrowUpRight,
@@ -101,6 +102,21 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
     setSelected(0);
     setSearch('');
   }
+  async function logout() {
+    if (
+      dirty &&
+      !window.confirm('Kaydedilmemiş değişiklikleriniz var. Çıkış yapmak istiyor musunuz?')
+    )
+      return;
+    try {
+      const response = await fetch('/api/admin/logout/', { method: 'POST' });
+      if (!response.ok) throw new Error();
+      window.location.assign('/yonetim/');
+    } catch {
+      setFailed(true);
+      setNotice('Çıkış yapılamadı. Lütfen yeniden deneyin.');
+    }
+  }
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -179,13 +195,9 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
             <strong>Site yöneticisi</strong>
             <small>{name}</small>
           </div>
-          <a
-            href="/signout-with-chatgpt?return_to=%2Fyonetim%2F"
-            target="_top"
-            aria-label="Çıkış yap"
-          >
+          <button type="button" onClick={logout} aria-label="Çıkış yap">
             <LogOut size={18} />
-          </a>
+          </button>
         </div>
       </aside>
       <div className="admin-workspace">
