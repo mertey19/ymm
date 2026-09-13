@@ -62,15 +62,18 @@ export function PublicationBrowser({ items }: { items: Publication[] }) {
           >
             <option value="">Tüm kategoriler</option>
             {[
-              'Vergi',
-              'KDV',
-              'Kurumlar Vergisi',
-              'Gelir Vergisi',
-              'SGK',
-              'Teşvikler',
-              'Mevzuat',
-              'Finans',
-              'Denetim',
+              ...new Set([
+                'Vergi',
+                'KDV',
+                'Kurumlar Vergisi',
+                'Gelir Vergisi',
+                'SGK',
+                'Teşvikler',
+                'Mevzuat',
+                'Finans',
+                'Denetim',
+                ...items.map((p) => p.category),
+              ]),
             ].map((c) => (
               <option key={c}>{c}</option>
             ))}

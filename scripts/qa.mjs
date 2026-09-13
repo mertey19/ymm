@@ -1,19 +1,12 @@
 import { chromium, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs/promises';
-import path from 'node:path';
+import { pages } from '../src/data/pages.ts';
+import { services } from '../src/data/services.ts';
+import { publications } from '../src/data/publications.ts';
 const base = process.env.QA_URL || 'http://localhost:3000';
 await fs.mkdir('test-results', { recursive: true });
-async function findRoutes(dir, prefix = '') {
-  const routes = [];
-  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
-    if (entry.isDirectory() && !entry.name.startsWith('_'))
-      routes.push(...(await findRoutes(path.join(dir, entry.name), `${prefix}/${entry.name}`)));
-    else if (entry.name === 'index.html') routes.push(prefix || '/');
-  }
-  return routes;
-}
-const routes = (await findRoutes('out')).filter((route) => route !== '/404');
+const routes = ['/',...pages.map(p=>`/${p.path}/`),...services.map(s=>`/hizmetler/${s.slug}/`),...publications.map(p=>`/${p.kind}/${p.slug}/`)];
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 const page = await context.newPage();
@@ -113,16 +106,18 @@ try {
     await page.getByRole('button', { name: 'Menüyü aç', exact: true }).isVisible(),
     'Mobile menu closes after navigation',
   );
-  await page.goto(base + '/sirkulerler');
+  await page.goto(base + '/sirkulerler', {waitUntil:'networkidle'});
   await page.getByLabel('Yayınlarda ara').fill('KDV');
-  check((await page.locator('.publication-card').count()) === 1, 'Search filters publications');
+  await expect(page.locator('.publication-card')).toHaveCount(1);
+  check(true, 'Search filters publications');
   await page.getByLabel('Kategori', { exact: true }).selectOption('SGK');
   check(
     await page.getByRole('heading', { name: 'Aramanıza uygun yayın bulunamadı' }).isVisible(),
     'Empty search state works',
   );
   await page.getByRole('button', { name: 'Tüm yayınları göster', exact: true }).click();
-  check((await page.locator('.publication-card').count()) === 3, 'Reset restores publications');
+  await expect(page.locator('.publication-card')).toHaveCount(3);
+  check(true, 'Reset restores publications');
   await page.goto(base + '/iletisim');
   await page.getByRole('button', { name: 'Gönder', exact: true }).click();
   check(

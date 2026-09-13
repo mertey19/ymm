@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { pages } from '@/data/pages';
-import { services } from '@/data/services';
-import { publications } from '@/data/publications';
+import { publicContent } from '@/lib/cms';
 import {
   About,
   Career,
@@ -18,15 +17,9 @@ import { PublicationDetail } from '@/components/publication-detail';
 import { ServiceDetail } from '@/components/service-detail';
 import { BreadcrumbSchema, metadataFor } from '@/lib/seo';
 type Props = { params: Promise<{ path: string[] }> };
-export function generateStaticParams() {
-  return [
-    ...pages.map((p) => p.path),
-    ...services.map((s) => `hizmetler/${s.slug}`),
-    ...publications.map((p) => `${p.kind}/${p.slug}`),
-  ].map((p) => ({ path: p.split('/') }));
-}
-export const dynamicParams = false;
+export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { services, publications } = await publicContent();
   const { path } = await params;
   const route = path.join('/');
   const service = services.find((s) => route === `hizmetler/${s.slug}`);
@@ -55,6 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: 'Sayfa Bulunamadı', robots: { index: false } };
 }
 export default async function ContentPage({ params }: Props) {
+  const { services, publications } = await publicContent();
   const { path } = await params;
   const route = path.join('/');
   const service = services.find((s) => route === `hizmetler/${s.slug}`);

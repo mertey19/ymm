@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import {
   ArrowDown,
   ArrowUpRight,
@@ -17,9 +17,7 @@ import {
   ServiceCards,
   TextLink,
 } from '@/components/ui';
-import { featuredServices } from '@/data/services';
-import { articles } from '@/data/articles';
-import { circulars } from '@/data/circulars';
+import { publicContent } from '@/lib/cms';
 import { contributions, processSteps, reasons, sectors, sectorNote } from '@/data/company';
 import { metadataFor } from '@/lib/seo';
 import { site } from '@/config/site';
@@ -27,7 +25,11 @@ export const metadata = {
   ...metadataFor('Yeminli Mali Müşavirlik, Vergi ve Danışmanlık', site.description, '/'),
   title: { absolute: 'Karen YMM | Yeminli Mali Müşavirlik, Vergi ve Danışmanlık' },
 };
-export default function Home() {
+export default async function Home() {
+  const { settings, services, publications } = await publicContent();
+  const featuredServices = services.slice(0, 6);
+  const articles = publications.filter((p) => p.kind === 'makaleler').slice(0, 3);
+  const circulars = publications.filter((p) => p.kind === 'sirkulerler').slice(0, 3);
   return (
     <>
       <section className="hero">
@@ -35,14 +37,8 @@ export default function Home() {
           <p className="eyebrow">
             <span /> KAREN YMM · YEMİNLİ MALİ MÜŞAVİRLİK
           </p>
-          <h1>
-            Vergi ve Finansal Süreçlerinizde <span>Güvenilir</span> Çözüm Ortağınız
-            <span className="hero-dot">.</span>
-          </h1>
-          <p className="hero-description">
-            Karen YMM; yeminli mali müşavirlik, vergi, tasdik, denetim ve mali danışmanlık
-            alanlarında işletmelerin ihtiyaçlarına özel, güvenilir ve sürdürülebilir çözümler sunar.
-          </p>
+          <h1>{settings.heroTitle}</h1>
+          <p className="hero-description">{settings.heroDescription}</p>
           <div className="hero-actions">
             <Link className="button button-white" href="/hizmetlerimiz">
               Hizmetlerimizi İnceleyin
@@ -246,3 +242,4 @@ export default function Home() {
     </>
   );
 }
+

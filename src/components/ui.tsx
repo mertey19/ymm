@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -198,3 +198,4 @@ export function EmptyState({ title, description }: { title: string; description:
     </div>
   );
 }
+

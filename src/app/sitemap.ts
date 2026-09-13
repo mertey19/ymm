@@ -1,10 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { site } from '@/config/site';
 import { pages } from '@/data/pages';
-import { services } from '@/data/services';
-import { publications } from '@/data/publications';
-export const dynamic = 'force-static';
-export default function sitemap(): MetadataRoute.Sitemap {
+import { publicContent } from '@/lib/cms';
+export const dynamic = 'force-dynamic';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { services, publications } = await publicContent();
   return [
     { url: `${site.url}/`, priority: 1 },
     ...pages

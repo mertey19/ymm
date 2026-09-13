@@ -1,18 +1,36 @@
 # Karen YMM
 
-Next.js App Router, TypeScript, Tailwind CSS 4 ve Lucide ile hazırlanmış kurumsal site. Sayfalar statik olarak önceden oluşturulur; CMS veya sunucu zorunluluğu yoktur.
+Next.js App Router kaynakları, TypeScript, Tailwind CSS 4 ve Lucide ile hazırlanmış kurumsal site. Sites üzerindeki sunucu çalışması için Vinext adaptörü ve Cloudflare D1 kullanır. İçerik sayfaları istekte veritabanından oluşturulur; `/yonetim/` panelindeki kayıtlar yeniden dağıtım gerektirmeden siteye yansır.
 
 ## Çalıştırma
 
-Node.js 20.9 veya üzeri. `npm ci`, ardından `npm run dev`. Üretim: `npm run build`, ardından `npm start`. Statik çıktı `out/` klasöründedir. Sunucu dizin indekslerini ve özel `404.html` sayfasını desteklemelidir.
+Node.js 22.13 veya üzeri. `npm ci`, ardından `npm run build`. Yerel veritabanına `drizzle/` altındaki her yeni SQL dosyasını sırasıyla bir kez uygulayın:
+
+```sh
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_wide_aqueduct.sql
+```
+
+Yerel geliştirme için git dışında kalan `.dev.vars` dosyasına `ADMIN_OWNER_EMAIL="seedy@sites.test"` yazın; `npm run dev -- --port 3000 --hostname 127.0.0.1` ile başlatın. Geliştirme sunucusunda ChatGPT giriş bağlantısı yalnızca loopback üzerinde yerel Seedy kimliğini oluşturur. Üretim çıktısı `dist/` altındadır; `npm start -- --port 3001` yerel Worker önizlemesi sunar (bu önizleme giriş simülasyonu yapmaz). Üretim Sites üzerinden yayımlanır; statik dosya sunucusu yeterli değildir.
+
+## Yönetim paneli ve yetkilendirme
+
+`/yonetim/`: genel bakış, anasayfa/hakkımızda metinleri, iletişim bilgileri, mevcut hizmetlerin kapsam/fayda/SSS düzenlemesi, makale/sirküler ekleme-düzenleme-silme, taslak/yayın durumu, ekip/ortak kayıtları.
+
+Sites tarafından doğrulanan ChatGPT kimliği kullanılır. Üretim `ADMIN_OWNER_EMAIL` değeri Sites ortam değişkenlerinde gizli tutulur. İlk eşleşen sahip oturumunda siteye özgü sabit kullanıcı kimliği `administrators` tablosuna bağlanır; sonraki erişimler e-posta yerine bu kimlik üzerinden denetlenir. E-posta değiştirmek mevcut yöneticiyi değiştirmez. Parola veya tarayıcıda yönetici anahtarı bulunmaz. Sahip kimliği kaynak koda gömülmez.
+
+Sites kimlik başlıkları yalnızca güvenilir Sites dispatcher üzerinden kullanılmalıdır. Bu uygulamayı başka bir barındırmaya taşırken gelen kimlik başlıklarını kabul eden açık bir origin yayımlamayın; eşdeğer doğrulanmış sunucu kimliği entegrasyonu gereklidir. Yerel geliştirme eklentisi dışarıdan verilen kimlik başlıklarını siler; giriş simülasyonu üretim paketine dahil edilmez.
+
+Her API okuma/yazması sunucuda yetki denetimi yapar; yazmalar aynı origin ve JSON gerektirir. İçerik doğrulaması, 1 MB istek sınırı ve sürüm karşılaştırmalı kayıt vardır. Eşzamanlı değişiklikler 409 ile reddedilir. Kayıt hatalarında form verisi korunur. Veritabanı hatası, sahte kayıt başarısı veya boş içerik yerine tekrar denenebilir hata gösterir. Taslaklar halka açık sorgulara ve sitemap'e dahil edilmez. İçerik HTML olarak çalıştırılmaz; React tarafından kaçırılır.
+
+Şema `db/schema.ts`, sürümlü migrasyonlar `drizzle/` altındadır; `npm run db:generate` yeni migrasyon üretir. Uygulanmış migrasyonlar değiştirilmez. İlk içerik düzenlenene kadar eski sitenin doğrulanmış başlangıç içerikleri kullanılır. Üretim veritabanı sürümler arasında korunur; Git geri alma işlemi veritabanı içeriğini geri almaz.
 
 ## Kontrol
 
 `npm run lint`, `npm run typecheck`, `npm run build`. Tarayıcı QA: sunucu 3000 portunda çalışırken `npm run test:qa` (ilk kullanım: `npx playwright install chromium`). Rapor ve ekran görüntüleri `test-results/` altında oluşturulur.
 
-Üretim performans ölçümü: `npx serve out -l 3001 --no-clipboard`, ardından `npm run test:performance`. `QA_URL` ortam değişkeniyle test hedefi değiştirilebilir. Ölçümleri diğer yoğun tarayıcı testleriyle aynı anda çalıştırmayın. Yerel Lighthouse sonuçları barındırma ortamı ve gerçek kullanıcı ölçümlerinin yerine geçmez.
+Panel doğrulaması: yerel geliştirme sunucusunda `node scripts/admin-qa.mjs`. Bu test yalnızca yerel veritabanını değiştirir, sonra başlangıç içeriğini geri koyar; üretime yönlendirilmemelidir. Anonim erişim, sahte başlık, origin, doğrulama, çakışma, kayıt/yenileme, taslak/yayın/silme, sitemap ve responsive/axe kontrollerini kapsar.
 
-`postbuild`, Next.js 16.3'ün Windows çıktısında iç içe RSC dosyalarında bıraktığı platform ayraçları için tarayıcının istediği noktalı dosya adlarını hazırlar. Bu uyumluluk işlemi vendor kodunu değiştirmez; Linux'ta gerekmediğinde işlem yapmaz.
+Önceki statik dışa aktarıma ait `normalize-static-export.mjs` artık çalıştırılmaz. Aktif dağıtım Worker ve D1 gerektirir.
 
 ## Merkezi içerik
 
@@ -20,7 +38,7 @@ Node.js 20.9 veya üzeri. `npm ci`, ardından `npm run dev`. Üretim: `npm run b
 - `src/data/services.ts`: dokuz hizmetin kapsamı, faydaları, hedef kitlesi ve SSS.
 - `src/data/navigation.ts`: ortak menüler.
 - `src/data/company.ts`: değerler, süreç, katkılar ve kolay değiştirilebilir örnek sektör seçenekleri. Sektörler gerçek müşteri veya uzmanlık iddiası olarak sunulmaz.
-- `src/data/team.ts`: `published: false` örnek kişi. Doğrulanmış bilgiler gelmeden görünmez.
+- Ekip ve ortak kayıtları panel üzerinden D1'e kaydedilir; ilk durumda boş liste kullanılır. `src/data/team.ts` önceki statik sürümün kullanılmayan örneğidir.
 - `src/data/publications.ts`: örnek sirküler ve makaleler. `demo: true` açıkça etiketlenir, noindex alır, sitemap ve Article şemasına dahil edilmez. Gerçek içerik, tarih ve editoryal onay sonrası `demo: false` yapıldığında Article şeması ve sitemap otomatik etkinleşir.
 - `src/data/pages.ts`: sayfa başlıkları, açıklamalar ve indeksleme tercihleri.
 
@@ -32,6 +50,8 @@ Form, endpoint boşken hiçbir ağ isteği yapmaz ve gönderim gerçekleşmiş g
 
 ## SEO ve erişilebilirlik
 
+Yönetim alanı noindex'tir; robots dosyası yönetim/API yollarını hariç tutar. Bu kurallar erişim güvenliğinin yerine geçmez. Aktif yetkilendirme sunucudadır. Şirketin iletişim bilgileri güncellendiğinde Organization/ProfessionalService şemaları da güncellenir.
+
 Özgün sayfa metadatası, canonical, Open Graph, sitemap, robots, Organization/ProfessionalService/BreadcrumbList şemaları; gerçek yayınlar için Article. Şehir, adres ve yetki belgesi uydurulmadı. Semantik başlıklar, klavye menüsü, native details akordeonları, focus-visible, azaltılmış hareket tercihi ve gerçek form etiketleri mevcut.
 
 ## Görsel kaynaklar
@@ -40,3 +60,4 @@ Form, endpoint boşken hiçbir ağ isteği yapmaz ve gönderim gerçekleşmiş g
 - Toplantı odası: Breather, https://unsplash.com/photos/X5Hjlv7nZU4 — CC0 kaynak kaydı: https://commons.wikimedia.org/wiki/File:Bright_conference_room_(Unsplash).jpg
 
 Her iki fotoğraf temsilidir; Karen YMM'nin gerçek ofisi olarak sunulmaz. WebP türevleri yerel sunulur. Manrope ve Inter fontları yerel paketlerden yüklenir. Referans siteler yalnızca bilgi mimarisi için incelendi: https://www.vdd.com.tr/ , https://kuleliymm.com/hizmetlerimiz , https://www.analizymm.com/ . Metin veya tasarım kopyalanmadı.
+`SiteLink` normal belge gezinmesi kullanır: kurumsal sayfalar her açılışta güncel CMS içeriğini alır. Bu seçim, mevcut Vinext beta sürümünün üretim RSC bağlantı/prefetch hatasını vendor koduna dokunmadan önler.

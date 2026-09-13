@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site-link';
 export default function NotFound() {
   return (
     <section className="not-found">
@@ -11,3 +11,4 @@ export default function NotFound() {
     </section>
   );
 }
+

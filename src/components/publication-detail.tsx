@@ -1,10 +1,12 @@
-import Link from 'next/link';
-import { publications, type Publication } from '@/data/publications';
+import Link from '@/components/site-link';
+import { type Publication } from '@/data/publications';
+import { publicContent } from '@/lib/cms';
 import { PageHero, PublicationCard, SectionHeading } from './ui';
 import { Share } from './share';
 import { JsonLd } from '@/lib/seo';
 import { site } from '@/config/site';
-export function PublicationDetail({ publication: p }: { publication: Publication }) {
+export async function PublicationDetail({ publication: p }: { publication: Publication }) {
+  const { publications } = await publicContent();
   const list = publications.filter((x) => x.kind === p.kind);
   const index = list.findIndex((x) => x.slug === p.slug);
   const previous = list[index - 1];
@@ -99,3 +101,4 @@ export function PublicationDetail({ publication: p }: { publication: Publication
     </>
   );
 }
+

@@ -1,12 +1,11 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import { Clock3, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react';
-import { site } from '@/config/site';
+import { site as siteDefaults } from '@/config/site';
+import { publicContent } from '@/lib/cms';
 import { values } from '@/data/company';
-import { partners, team } from '@/data/team';
 import { CheckList, EmptyState, TextLink } from './ui';
 import { ContactForm } from './contact-form';
-import { services } from '@/data/services';
 export function Values() {
   return (
     <div className="values-grid">
@@ -44,7 +43,8 @@ export function MissionVision() {
     </div>
   );
 }
-export function About() {
+export async function About() {
+  const { settings } = await publicContent();
   return (
     <>
       <div className="about-grid">
@@ -59,25 +59,10 @@ export function About() {
         </div>
         <div className="about-copy">
           <p className="eyebrow">KAREN YMM</p>
-          <h2>
-            Her İşletmeye Özgü,
-            <br />
-            İlkelere Bağlı Bir Yaklaşım
-          </h2>
-          <p>
-            Karen YMM; yeminli mali müşavirlik, vergi, tasdik, denetim ve mali danışmanlık
-            alanlarında işletmelerin ihtiyaçlarını bütüncül bir bakışla ele alır. Çalışmalarımızın
-            başlangıç noktası, işinizi ve kararlarınızın mali boyutunu anlamaktır.
-          </p>
-          <p>
-            Mesleki etik ve bağımsızlık anlayışıyla, değerlendirmelerimizi bilgi ve belgelere
-            dayandırırız. Süreçlerin her aşamasında sorumlulukların açık olmasına, düzenli iletişime
-            ve gizliliğe önem veririz.
-          </p>
-          <p>
-            Mevzuattaki ve iş dünyasındaki gelişmeleri izler; bulgularımızı işletmenizin
-            anlayabileceği, değerlendirebileceği ve uygulayabileceği bir çerçevede paylaşırız.
-          </p>
+          <h2>{settings.aboutTitle}</h2>
+          {settings.aboutText.split(/\n\s*\n/).map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
         </div>
       </div>
       <div className="section">
@@ -91,8 +76,9 @@ export function About() {
     </>
   );
 }
-export function TeamPage({ isPartners = false }: { isPartners?: boolean }) {
-  const members = (isPartners ? partners : team).filter((x) => x.published);
+export async function TeamPage({ isPartners = false }: { isPartners?: boolean }) {
+  const { team } = await publicContent();
+  const members = team.filter((x) => !isPartners || x.partner);
   if (!members.length)
     return (
       <EmptyState
@@ -104,15 +90,17 @@ export function TeamPage({ isPartners = false }: { isPartners?: boolean }) {
     <div className="team-grid">
       {members.map((x) => (
         <article key={x.name}>
-          {x.image && <Image src={x.image} alt={x.name} width={400} height={500} />}
           <h2>{x.name}</h2>
           <p>{x.title}</p>
+          <p style={{ whiteSpace: 'pre-line' }}>{x.bio}</p>
         </article>
       ))}
     </div>
   );
 }
-export function Contact() {
+export async function Contact() {
+  const { settings, services } = await publicContent();
+  const site = { ...siteDefaults, ...settings };
   return (
     <div className="contact-grid">
       <div className="contact-info">
@@ -230,11 +218,16 @@ export function Policy({ kind }: { kind: string }) {
         <>
           <h2>Paylaştığınız Bilgiler</h2>
           <p>
-            Bu sitede üyelik, ödeme veya belge yükleme işlevi bulunmaz. Gönderim hizmeti
+            Ziyaretçilere yönelik üyelik, ödeme veya belge yükleme işlevi bulunmaz. Gönderim hizmeti
             yapılandırılmadığı sürece iletişim formuna yazılan bilgiler uygulama tarafından
             iletilmez ve kalıcı olarak saklanmaz.
           </p>
           <h2>Teknik Hizmetler</h2>
+          <p>
+            Yönetim paneli yalnızca site sahibine açıktır. Giriş, barındırma hizmetinin ChatGPT
+            oturumuyla doğrulanır. Yönetici yetkisinin korunması için siteye özgü kullanıcı kimliği;
+            siteyi güncel tutmak için yayımlanan içerikler, taslaklar ve son kayıt zamanı saklanır.
+          </p>
           <p>
             Barındırma sağlayıcısı, sitenin sunulması ve erişim güvenliği için teknik kayıtlar
             işleyebilir. Sağlayıcının veri uygulamaları kendi bilgilendirmesinde açıklanır.
@@ -254,3 +247,4 @@ export function Policy({ kind }: { kind: string }) {
     </div>
   );
 }
+

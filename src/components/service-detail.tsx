@@ -1,9 +1,11 @@
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import { ArrowUpRight } from 'lucide-react';
-import { services, type Service } from '@/data/services';
+import { type Service } from '@/data/services';
+import { publicContent } from '@/lib/cms';
 import { processSteps } from '@/data/company';
 import { Accordion, CheckList, CTA, PageHero } from './ui';
-export function ServiceDetail({ service: s }: { service: Service }) {
+export async function ServiceDetail({ service: s }: { service: Service }) {
+  const { services } = await publicContent();
   return (
     <>
       <PageHero
@@ -75,3 +77,4 @@ export function ServiceDetail({ service: s }: { service: Service }) {
     </>
   );
 }
+

@@ -1,10 +1,12 @@
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import { ArrowUpRight } from 'lucide-react';
 import { Wordmark } from './header';
-import { site } from '@/config/site';
+import { site as siteDefaults } from '@/config/site';
+import { publicContent } from '@/lib/cms';
 import { corporateLinks, publicationLinks } from '@/data/navigation';
-import { services } from '@/data/services';
-export function Footer() {
+export async function Footer() {
+  const { settings, services } = await publicContent();
+  const site = { ...siteDefaults, ...settings };
   return (
     <footer className="site-footer">
       <div className="container">
@@ -34,7 +36,7 @@ export function Footer() {
           </div>
           <div>
             <h2>Hizmetlerimiz</h2>
-            {[services[0], services[1], services[2], services[4], services[5]].map((x) => (
+            {services.slice(0, 5).map((x) => (
               <Link key={x.slug} href={`/hizmetler/${x.slug}`}>
                 {x.shortTitle}
               </Link>
@@ -84,3 +86,4 @@ export function Footer() {
     </footer>
   );
 }
+

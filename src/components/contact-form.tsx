@@ -1,6 +1,6 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import Link from 'next/link';
+import Link from '@/components/site-link';
 import { ArrowUpRight, LoaderCircle } from 'lucide-react';
 import { site } from '@/config/site';
 import { validateContact, type ContactValues } from '@/lib/contact';
@@ -54,7 +54,7 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
         body: JSON.stringify(values),
         signal: AbortSignal.timeout(15000),
       });
-      const result = await response.json();
+      const result = (await response.json()) as { success?: boolean };
       if (!response.ok || result.success !== true) throw new Error('delivery-failed');
       setState('success');
       setFeedback('Mesajınız alındı. İletişim talebiniz için teşekkür ederiz.');
@@ -217,3 +217,4 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
     </form>
   );
 }
+
