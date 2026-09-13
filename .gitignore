@@ -10,3 +10,6 @@ dist/
 .wrangler/
 .vinext/
 .dev.vars*
+
+.vercel/
+.env*.local
