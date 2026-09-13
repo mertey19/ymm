@@ -1,6 +1,6 @@
 import {chromium,expect,request} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-const origin='http://127.0.0.1:3001';
+const origin=process.env.QA_URL || 'http://127.0.0.1:3002';
 const browser=await chromium.launch();const context=await browser.newContext();const page=await context.newPage();
 const api=await request.newContext();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{

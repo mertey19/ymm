@@ -74,6 +74,14 @@ export const cmsSchema = z
       .max(100),
   })
   .superRefine((data, ctx) => {
+    data.publications.forEach((p, index) => {
+      if (p.demo && p.published)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['publications', index, 'published'],
+          message: 'Örnek içerikler yalnızca taslak olarak saklanabilir.',
+        });
+    });
     for (const key of ['services', 'publications', 'team'] as const) {
       const ids = data[key].map((x) =>
         'slug' in x ? ('kind' in x ? `${x.kind}/${x.slug}` : x.slug) : x.id,

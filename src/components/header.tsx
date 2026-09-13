@@ -20,7 +20,13 @@ export function Wordmark() {
     </span>
   );
 }
-export function Header({ items }: { items: NavigationItem[] }) {
+export function Header({
+  items,
+  contactAvailable = false,
+}: {
+  items: NavigationItem[];
+  contactAvailable?: boolean;
+}) {
   const [mobile, setMobile] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const path = usePathname();
@@ -116,13 +122,14 @@ export function Header({ items }: { items: NavigationItem[] }) {
               )}
             </div>
           ))}
-          <Link className="button header-cta" href="/iletisim" onClick={close}>
-            Bizimle İletişime Geçin
-            <ArrowUpRight size={16} />
-          </Link>
+          {contactAvailable && (
+            <Link className="button header-cta" href="/iletisim" onClick={close}>
+              Bizimle İletişime Geçin
+              <ArrowUpRight size={16} />
+            </Link>
+          )}
         </nav>
       </div>
     </header>
   );
 }
-

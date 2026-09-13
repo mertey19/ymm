@@ -426,7 +426,7 @@ svg {
   font-size: 12px;
   color: #7d694c;
 }
-.service-card h3 {
+.service-card :is(h2, h3) {
   font-size: 21px;
   max-width: 285px;
 }
@@ -634,12 +634,12 @@ svg {
   color: #77603b;
   font-weight: 600;
 }
-.publication-card h3 {
+.publication-card :is(h2, h3) {
   font-size: 23px;
   line-height: 1.4;
   margin: 21px 0 15px;
 }
-.publication-card h3 a:hover {
+.publication-card :is(h2, h3) a:hover {
   color: var(--secondary);
 }
 .publication-card > p {
@@ -910,7 +910,7 @@ svg {
   padding: 30px;
   border: 1px solid var(--line);
 }
-.values-grid h3 {
+.values-grid h2 {
   margin: 15px 0;
 }
 .values-grid p {
@@ -1239,7 +1239,7 @@ svg {
   .service-card {
     padding: 26px;
   }
-  .service-card h3 {
+  .service-card :is(h2, h3) {
     font-size: 20px;
   }
   .why-grid {
@@ -1337,7 +1337,7 @@ svg {
   .publication-grid {
     gap: 20px;
   }
-  .publication-card h3 {
+  .publication-card :is(h2, h3) {
     font-size: 20px;
   }
   .publication-meta {
@@ -1535,7 +1535,7 @@ svg {
   .service-card {
     padding: 24px;
   }
-  .service-card h3 {
+  .service-card :is(h2, h3) {
     font-size: 21px;
   }
   .service-card > p {
@@ -1596,7 +1596,7 @@ svg {
     flex-direction: row;
     font-size: 11px;
   }
-  .publication-card h3 {
+  .publication-card :is(h2, h3) {
     font-size: 23px;
     margin: 17px 0 12px;
   }
@@ -1929,5 +1929,31 @@ svg {
   }
   .about-grid {
     gap: 45px;
+  }
+}
+
+/* Columns adapt when unconfigured company/publication blocks are hidden. */
+.footer-main {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.footer-main > div {
+  grid-column: auto !important;
+}
+.contact-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.footer-main > div:not(.footer-brand) > a,
+.footer-bottom a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+@media (max-width: 600px) {
+  .footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer-main > .footer-brand {
+    grid-column: 1 / -1 !important;
   }
 }

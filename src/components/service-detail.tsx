@@ -1,11 +1,12 @@
 import Link from '@/components/site-link';
 import { ArrowUpRight } from 'lucide-react';
 import { type Service } from '@/data/services';
+import { hasContactChannels } from '@/config/site';
 import { publicContent } from '@/lib/cms';
 import { processSteps } from '@/data/company';
 import { Accordion, CheckList, CTA, PageHero } from './ui';
 export async function ServiceDetail({ service: s }: { service: Service }) {
-  const { services } = await publicContent();
+  const { services, settings } = await publicContent();
   return (
     <>
       <PageHero
@@ -62,19 +63,20 @@ export async function ServiceDetail({ service: s }: { service: Service }) {
                 <ArrowUpRight size={14} />
               </Link>
             ))}
-            <div className="sidebar-cta">
-              <h3>Uzmanlarımızla Görüşün</h3>
-              <p>İşletmenize uygun çalışma kapsamını birlikte belirleyelim.</p>
-              <Link className="button" href={`/iletisim?konu=${encodeURIComponent(s.title)}`}>
-                İletişime Geçin
-                <ArrowUpRight size={17} />
-              </Link>
-            </div>
+            {hasContactChannels(settings) && (
+              <div className="sidebar-cta">
+                <h3>Uzmanlarımızla Görüşün</h3>
+                <p>İşletmenize uygun çalışma kapsamını birlikte belirleyelim.</p>
+                <Link className="button" href="/iletisim">
+                  İletişime Geçin
+                  <ArrowUpRight size={17} />
+                </Link>
+              </div>
+            )}
           </aside>
         </div>
       </section>
-      <CTA />
+      <CTA enabled={hasContactChannels(settings)} />
     </>
   );
 }
-

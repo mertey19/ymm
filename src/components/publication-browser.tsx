@@ -19,6 +19,13 @@ export function PublicationBrowser({ items }: { items: Publication[] }) {
       ),
     [items, query, year, category],
   );
+  if (!items.length)
+    return (
+      <div className="empty-state">
+        <h2>Henüz yayımlanmış içerik bulunmuyor</h2>
+        <p>Yeni yayınlar eklendiğinde bu sayfada yer alacak.</p>
+      </div>
+    );
   return (
     <>
       {items.some((item) => item.demo) && (
@@ -99,7 +106,7 @@ export function PublicationBrowser({ items }: { items: Publication[] }) {
       {filtered.length ? (
         <div className="publication-grid">
           {filtered.map((p) => (
-            <PublicationCard key={p.slug} item={p} />
+              <PublicationCard key={p.slug} item={p} headingLevel={2} />
           ))}
         </div>
       ) : (

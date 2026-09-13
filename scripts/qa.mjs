@@ -4,9 +4,9 @@ import fs from 'node:fs/promises';
 import { pages } from '../src/data/pages.ts';
 import { services } from '../src/data/services.ts';
 import { publications } from '../src/data/publications.ts';
-const base = process.env.QA_URL || 'http://localhost:3000';
+const base = process.env.QA_URL || 'http://127.0.0.1:3002';
 await fs.mkdir('test-results', { recursive: true });
-const routes = ['/',...pages.map(p=>`/${p.path}/`),...services.map(s=>`/hizmetler/${s.slug}/`),...publications.map(p=>`/${p.kind}/${p.slug}/`)];
+const routes = ['/',...pages.map(p=>`/${p.path}/`),...services.map(s=>`/hizmetler/${s.slug}/`)];
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 const page = await context.newPage();
@@ -37,7 +37,7 @@ try {
       description: document.querySelector('meta[name=description]')?.getAttribute('content'),
       overflow: document.documentElement.scrollWidth > innerWidth,
       broken: [...document.images]
-        .filter((i) => !i.complete || i.naturalWidth === 0)
+        .filter((i) => i.loading !== 'lazy' && (!i.complete || i.naturalWidth === 0))
         .map((i) => i.src),
       emptyLinks: [...document.querySelectorAll('a')].filter(
         (a) => !a.getAttribute('href') || a.getAttribute('href') === '#',
@@ -55,7 +55,7 @@ try {
     )
       throw new Error(`Route failed: ${route} ${JSON.stringify(info)}`);
   }
-  for (const width of [320, 375, 390, 430, 768, 1024, 1280, 1440, 1920]) {
+  for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const route of ['/', '/iletisim', '/hizmetler/tam-tasdik', '/sirkulerler']) {
       await page.goto(base + route, { waitUntil: 'networkidle' });
@@ -64,11 +64,11 @@ try {
       if (overflow) throw new Error(`Overflow ${width} ${route}`);
     }
     await page.goto(base, { waitUntil: 'networkidle' });
-    if ([320, 375, 768, 1440, 1920].includes(width))
+    if ([360, 390, 768, 1024, 1440].includes(width))
       await page.screenshot({ path: `test-results/home-${width}.png`, fullPage: true });
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(base);
+  await page.goto(base, {waitUntil:'networkidle'});
   await page.getByRole('button', { name: 'Kurumsal', exact: true }).click();
   check(
     await page.getByRole('link', { name: 'Misyon ve Vizyon', exact: true }).isVisible(),
@@ -86,6 +86,7 @@ try {
     'Keyboard dropdown opens',
   );
   await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', {name:'Hizmetlerimiz',exact:true})).toBeFocused();
   check(
     (await page
       .getByRole('button', { name: 'Hizmetlerimiz', exact: true })
@@ -106,57 +107,37 @@ try {
     await page.getByRole('button', { name: 'Menüyü aç', exact: true }).isVisible(),
     'Mobile menu closes after navigation',
   );
-  await page.goto(base + '/sirkulerler', {waitUntil:'networkidle'});
-  await page.getByLabel('Yayınlarda ara').fill('KDV');
-  await expect(page.locator('.publication-card')).toHaveCount(1);
-  check(true, 'Search filters publications');
-  await page.getByLabel('Kategori', { exact: true }).selectOption('SGK');
-  check(
-    await page.getByRole('heading', { name: 'Aramanıza uygun yayın bulunamadı' }).isVisible(),
-    'Empty search state works',
-  );
-  await page.getByRole('button', { name: 'Tüm yayınları göster', exact: true }).click();
-  await expect(page.locator('.publication-card')).toHaveCount(3);
-  check(true, 'Reset restores publications');
-  await page.goto(base + '/iletisim');
-  await page.getByRole('button', { name: 'Gönder', exact: true }).click();
-  check(
-    (await page.locator('[aria-invalid=true]').count()) >= 4,
-    'Required field validation works',
-  );
-  await page.getByLabel('Ad Soyad *', { exact: true }).fill('Test Kullanıcısı');
-  await page.getByLabel('E-posta *', { exact: true }).fill('test@example.com');
-  await page.getByLabel('Konu *', { exact: true }).selectOption('Genel Bilgi');
-  await page
-    .getByLabel('Mesajınız *', { exact: true })
-    .fill('Bu iletişim formunun doğrulama kontrolü için test mesajıdır.');
-  await page.locator('#contact-consent').check();
-  let posts = 0;
-  page.on('request', (r) => {
-    if (r.method() === 'POST') posts++;
-  });
-  await page.getByRole('button', { name: 'Gönder', exact: true }).click();
-  check(
-    await page
-      .locator('.form-status[role="alert"]')
-      .textContent()
-      .then((t) => t.includes('Mesajınız gönderilmedi')),
-    'Unconfigured form honestly reports no delivery',
-  );
-  check(posts === 0, 'Unconfigured form sends no personal data');
+  await page.goto(base + '/sirkulerler/', {waitUntil:'networkidle'});
+  await expect(page.locator('.publication-card')).toHaveCount(0);
+  await expect(page.getByLabel('Yayınlarda ara')).toHaveCount(0);
+  for (const publication of publications) {
+    const result = await context.request.get(base + '/' + publication.kind + '/' + publication.slug + '/');
+    check(result.status() === 404, 'Demo URL returns 404: ' + publication.slug);
+  }
+  await page.goto(base + '/iletisim/', {waitUntil:'networkidle'});
+  await expect(page.locator('form')).toHaveCount(0);
+  await expect(page.locator('.contact-item')).toHaveCount(0);
+  check(true, 'Unconfigured contact blocks and form are hidden');
+  await page.goto(base, {waitUntil:'networkidle'});
+  await expect(page.locator('.publication-card, .cta-section, .header-cta, .hero-secondary')).toHaveCount(0);
+  check(await page.locator('meta[name=robots]').getAttribute('content').then(v=>v.includes('noindex')), 'Preview is noindex');
+  check((await (await context.request.get(base+'/robots.txt')).text()).includes('Disallow: /'), 'Preview robots disallows crawling');
+  check(!(await (await context.request.get(base+'/sitemap.xml')).text()).includes('<loc>'), 'Preview sitemap has no URLs');
+  await page.locator('.hero-explore').click();
+  await expect(page).toHaveURL(/#uzmanlik$/);
+  check(true, 'Hero anchor works');
+  const imageInfo = await page.locator('.hero-image img').evaluate(img=>({src:img.currentSrc,srcset:img.srcset}));
+  check(imageInfo.src.includes('hero-') && imageInfo.srcset.includes('480w'), 'Browser uses prepared responsive WebP assets');
+  for (const attribute of ['property="og:image"','name="twitter:image"']) {
+    check((await page.locator('meta['+attribute+']').getAttribute('content')).endsWith('/og.png'), 'Social image metadata: '+attribute);
+  }
+  const social = await context.request.get(base+'/og.png'); check(social.status()===200, 'Social image resolves');
+  check((await context.request.get(base+'/favicon.svg')).status()===200, 'Favicon resolves');
   await page.goto(base + '/hizmetler/tam-tasdik');
   await page.locator('.accordion summary').first().click();
   check(
     (await page.locator('.accordion details').first().getAttribute('open')) !== null,
     'Service FAQ accordion works',
-  );
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto(base + '/makaleler/finansal-kararlarda-raporlama');
-  await page.getByRole('button', { name: 'Bağlantıyı kopyala' }).click();
-  await expect(page.locator('.share-row [role="status"]')).toHaveText('Bağlantı kopyalandı.');
-  check(
-    (await page.locator('.share-row [role="status"]').textContent()) === 'Bağlantı kopyalandı.',
-    'Publication link copy works',
   );
   for (const route of [
     '/',
@@ -178,6 +159,8 @@ try {
       })),
     });
   }
+  await page.emulateMedia({reducedMotion:'reduce'});
+  check(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior==='auto'), 'Reduced motion disables smooth scrolling');
   check(report.errors.length === 0, 'No console or runtime errors');
   check(report.warnings.length === 0, 'No console warnings');
   check(

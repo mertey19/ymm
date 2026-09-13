@@ -2,13 +2,16 @@ import type { MetadataRoute } from 'next';
 import { site } from '@/config/site';
 import { pages } from '@/data/pages';
 import { publicContent } from '@/lib/cms';
+import { pageIsIndexable } from '@/lib/page-visibility';
 export const dynamic = 'force-dynamic';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { services, publications } = await publicContent();
+  if (!site.isIndexable) return [];
+  const content = await publicContent();
+  const { services, publications } = content;
   return [
     { url: `${site.url}/`, priority: 1 },
     ...pages
-      .filter((p) => !p.noindex)
+      .filter((p) => pageIsIndexable(p, content))
       .map((p) => ({ url: `${site.url}/${p.path}/`, priority: 0.7 })),
     ...services.map((s) => ({ url: `${site.url}/hizmetler/${s.slug}/`, priority: 0.8 })),
     ...publications

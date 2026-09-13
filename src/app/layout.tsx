@@ -3,7 +3,7 @@ import '@fontsource-variable/manrope';
 import '@fontsource-variable/inter';
 import './globals.css';
 import './hero.css';
-import { site } from '@/config/site';
+import { site, socialImage } from '@/config/site';
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
@@ -12,8 +12,9 @@ export const metadata: Metadata = {
   },
   description: site.description,
   icons: { icon: '/favicon.svg' },
-  openGraph: { locale: 'tr_TR', siteName: site.name, type: 'website' },
-  robots: { index: true, follow: true },
+  openGraph: { locale: 'tr_TR', siteName: site.name, type: 'website', images: [socialImage] },
+  twitter: { card: 'summary_large_image', images: [socialImage.url] },
+  robots: { index: site.isIndexable, follow: true },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

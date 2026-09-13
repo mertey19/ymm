@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ResponsiveImage } from '@/components/responsive-image';
 import Link from '@/components/site-link';
 import {
   ArrowDown,
@@ -9,18 +9,11 @@ import {
   Scale,
   ShieldCheck,
 } from 'lucide-react';
-import {
-  Accordion,
-  CTA,
-  PublicationCard,
-  SectionHeading,
-  ServiceCards,
-  TextLink,
-} from '@/components/ui';
+import { CTA, PublicationCard, SectionHeading, ServiceCards, TextLink } from '@/components/ui';
 import { publicContent } from '@/lib/cms';
-import { contributions, processSteps, reasons, sectors, sectorNote } from '@/data/company';
+import { processSteps } from '@/data/company';
 import { metadataFor } from '@/lib/seo';
-import { site } from '@/config/site';
+import { site, hasContactChannels } from '@/config/site';
 export const metadata = {
   ...metadataFor('Yeminli Mali Müşavirlik, Vergi ve Danışmanlık', site.description, '/'),
   title: { absolute: 'Karen YMM | Yeminli Mali Müşavirlik, Vergi ve Danışmanlık' },
@@ -44,10 +37,12 @@ export default async function Home() {
               Hizmetlerimizi İnceleyin
               <ArrowUpRight size={18} />
             </Link>
-            <Link className="hero-secondary" href="/iletisim">
-              Karen YMM ile İletişime Geçin
-              <ArrowUpRight size={16} />
-            </Link>
+            {hasContactChannels(settings) && (
+              <Link className="hero-secondary" href="/iletisim">
+                Karen YMM ile İletişime Geçin
+                <ArrowUpRight size={16} />
+              </Link>
+            )}
           </div>
           <a className="hero-explore" href="#uzmanlik">
             <ArrowDown size={16} />
@@ -55,7 +50,7 @@ export default async function Home() {
           </a>
         </div>
         <div className="hero-image" aria-hidden="true">
-          <Image src="/images/hero.webp" alt="" fill priority sizes="100vw" />
+          <ResponsiveImage name="hero" alt="" priority sizes="100vw" />
         </div>
       </section>
       <div className="trust-band">
@@ -73,13 +68,24 @@ export default async function Home() {
           ))}
         </div>
       </div>
+      <section className="section surface" id="uzmanlik">
+        <div className="container">
+          <SectionHeading
+            eyebrow="HİZMETLERİMİZ"
+            title="Uzmanlık Alanlarımız"
+            description="İşletmenizin vergi ve finansal süreçlerini doğru, güvenilir ve mevzuata uygun şekilde yönetmenize destek oluyoruz."
+          >
+            <TextLink href="/hizmetlerimiz">Tüm Hizmetlerimiz</TextLink>
+          </SectionHeading>
+          <ServiceCards items={featuredServices} />
+        </div>
+      </section>
       <section className="section about-section">
         <div className="container about-grid">
           <div className="about-image">
-            <Image
-              src="/images/about.webp"
+            <ResponsiveImage
+              name="about"
               alt="Gün ışığı alan sade ve profesyonel toplantı odası"
-              fill
               sizes="(max-width: 767px) 100vw, 42vw"
             />
             <div className="about-image-label">
@@ -122,58 +128,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <section className="section surface" id="uzmanlik">
-        <div className="container">
-          <SectionHeading
-            eyebrow="HİZMETLERİMİZ"
-            title="Uzmanlık Alanlarımız"
-            description="İşletmenizin vergi ve finansal süreçlerini doğru, güvenilir ve mevzuata uygun şekilde yönetmenize destek oluyoruz."
-          >
-            <TextLink href="/hizmetlerimiz">Tüm Hizmetlerimiz</TextLink>
-          </SectionHeading>
-          <ServiceCards items={featuredServices} />
-        </div>
-      </section>
-      <section className="section why-section">
-        <div className="container why-grid">
-          <div>
-            <p className="eyebrow">YAKLAŞIMIMIZ</p>
-            <h2>
-              Neden
-              <br />
-              Karen YMM?
-            </h2>
-            <p>
-              Güveni yalnızca sonuçta değil,
-              <br />
-              sürecin her adımında inşa ederiz.
-            </p>
-            <span className="gold-rule" />
-          </div>
-          <div className="reasons-grid">
-            {reasons.map((x, i) => (
-              <article key={x.title}>
-                <span className="reason-number">0{i + 1}</span>
-                <h3>{x.title}</h3>
-                <p>{x.text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="section">
-        <div className="container contribution-grid">
-          <div>
-            <p className="eyebrow">İŞLETMENİZE KATKIMIZ</p>
-            <h2>Yeminli Mali Müşavirlik Hizmetleri İşletmenize Ne Sağlar?</h2>
-            <p className="section-description">
-              Sağlıklı kararlar için doğru bilgi, düzenli kontrol ve bütüncül bir bakış.
-            </p>
-            <TextLink href="/hizmetlerimiz">Hizmetlerimizi Keşfedin</TextLink>
-          </div>
-          <Accordion items={contributions} />
-        </div>
-      </section>
       <section className="section surface">
         <div className="container">
           <SectionHeading
@@ -192,54 +146,39 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <section className="section sectors-section">
-        <div className="container">
-          <SectionHeading
-            eyebrow="İŞİNİZİN DİNAMİKLERİNİ ANLIYORUZ"
-            title="Farklı Sektörlere Özel Çözümler"
-            description={sectorNote}
-          />
-          <div className="sector-grid">
-            {sectors.map((x, i) => (
-              <Link href={`/iletisim?konu=${encodeURIComponent(x)}`} key={x}>
-                <span className="sector-number">0{i + 1}</span>
-                <span>{x}</span>
-                <ArrowUpRight size={18} />
-              </Link>
-            ))}
+      {circulars.length > 0 && (
+        <section className="section surface">
+          <div className="container">
+            <SectionHeading
+              eyebrow="MEVZUAT VE VERGİ GÜNDEMİ"
+              title="Güncel Sirkülerler"
+              description="Vergi ve mevzuat gelişmeleri için bilgi paylaşım alanımız."
+            >
+              <TextLink href="/sirkulerler">Tüm Sirkülerleri Gör</TextLink>
+            </SectionHeading>
+            <div className="publication-grid">
+              {circulars.map((x) => (
+                <PublicationCard key={x.slug} item={x} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-      <section className="section surface">
-        <div className="container">
-          <SectionHeading
-            eyebrow="MEVZUAT VE VERGİ GÜNDEMİ"
-            title="Güncel Sirkülerler"
-            description="Vergi ve mevzuat gelişmeleri için bilgi paylaşım alanımız."
-          >
-            <TextLink href="/sirkulerler">Tüm Sirkülerleri Gör</TextLink>
-          </SectionHeading>
-          <div className="publication-grid">
-            {circulars.map((x) => (
-              <PublicationCard key={x.slug} item={x} />
-            ))}
+        </section>
+      )}
+      {articles.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <SectionHeading eyebrow="BİLGİ VE BAKIŞ AÇISI" title="Karen YMM’den Güncel İçerikler">
+              <TextLink href="/makaleler">Tüm Makaleler</TextLink>
+            </SectionHeading>
+            <div className="publication-grid editorial">
+              {articles.map((x) => (
+                <PublicationCard key={x.slug} item={x} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-      <section className="section">
-        <div className="container">
-          <SectionHeading eyebrow="BİLGİ VE BAKIŞ AÇISI" title="Karen YMM’den Güncel İçerikler">
-            <TextLink href="/makaleler">Tüm Makaleler</TextLink>
-          </SectionHeading>
-          <div className="publication-grid editorial">
-            {articles.map((x) => (
-              <PublicationCard key={x.slug} item={x} />
-            ))}
-          </div>
-        </div>
-      </section>
-      <CTA />
+        </section>
+      )}
+      <CTA enabled={hasContactChannels(settings)} />
     </>
   );
 }
-

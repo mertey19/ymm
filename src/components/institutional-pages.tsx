@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ResponsiveImage } from './responsive-image';
 import Link from '@/components/site-link';
 import { Clock3, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import { site as siteDefaults } from '@/config/site';
@@ -12,7 +12,7 @@ export function Values() {
       {values.map((x) => (
         <article key={x.title}>
           <ShieldCheck size={25} strokeWidth={1.4} />
-          <h3>{x.title}</h3>
+          <h2>{x.title}</h2>
           <p>{x.text}</p>
         </article>
       ))}
@@ -49,10 +49,9 @@ export async function About() {
     <>
       <div className="about-grid">
         <div className="about-image">
-          <Image
-            src="/images/about.webp"
+          <ResponsiveImage
+            name="about"
             alt="Sade bir toplantı odasında doğal ışık ve çalışma alanı"
-            fill
             priority
             sizes="(max-width:767px) 100vw, 45vw"
           />
@@ -101,44 +100,45 @@ export async function TeamPage({ isPartners = false }: { isPartners?: boolean })
 export async function Contact() {
   const { settings, services } = await publicContent();
   const site = { ...siteDefaults, ...settings };
+  const hasDetails = Boolean(site.phone || site.email || site.address || site.workingHours);
   return (
-    <div className="contact-grid">
-      <div className="contact-info">
-        <h2>İletişim Bilgilerimiz</h2>
-        {[
-          { icon: MapPin, label: 'Adres', value: site.address, link: '' },
-          {
-            icon: Phone,
-            label: 'Telefon',
-            value: site.phone,
-            link: site.phone ? `tel:${site.phone.replace(/\s/g, '')}` : '',
-          },
-          {
-            icon: Mail,
-            label: 'E-posta',
-            value: site.email,
-            link: site.email ? `mailto:${site.email}` : '',
-          },
-          { icon: Clock3, label: 'Çalışma Saatleri', value: site.workingHours, link: '' },
-        ].map((x) => (
-          <div className="contact-item" key={x.label}>
-            <x.icon size={21} strokeWidth={1.4} />
-            <div>
-              <h3>{x.label}</h3>
-              {x.value ? (
-                x.link ? (
-                  <a href={x.link}>{x.value}</a>
-                ) : (
-                  <p>{x.value}</p>
-                )
-              ) : (
-                <p>Bilgi güncellemesi hazırlanıyor.</p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-      <ContactForm subjects={services.map((service) => service.title)} />
+    <div className={`contact-grid${hasDetails && site.contactEndpoint ? '' : ' contact-single'}`}>
+      {hasDetails && (
+        <div className="contact-info">
+          <h2>İletişim Bilgilerimiz</h2>
+          {[
+            { icon: MapPin, label: 'Adres', value: site.address, link: '' },
+            {
+              icon: Phone,
+              label: 'Telefon',
+              value: site.phone,
+              link: site.phone ? `tel:${site.phone.replace(/\s/g, '')}` : '',
+            },
+            {
+              icon: Mail,
+              label: 'E-posta',
+              value: site.email,
+              link: site.email ? `mailto:${site.email}` : '',
+            },
+            { icon: Clock3, label: 'Çalışma Saatleri', value: site.workingHours, link: '' },
+          ]
+            .filter((x) => x.value.trim())
+            .map((x) => (
+              <div className="contact-item" key={x.label}>
+                <x.icon size={21} strokeWidth={1.4} />
+                <div>
+                  <h3>{x.label}</h3>
+                  {x.link ? <a href={x.link}>{x.value}</a> : <p>{x.value}</p>}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+      {site.contactEndpoint ? (
+        <ContactForm subjects={services.map((service) => service.title)} />
+      ) : (
+        <p className="sample-notice">Çevrimiçi mesaj gönderimi şu anda kullanıma açık değil.</p>
+      )}
     </div>
   );
 }
@@ -224,8 +224,8 @@ export function Policy({ kind }: { kind: string }) {
           </p>
           <h2>Teknik Hizmetler</h2>
           <p>
-            Yönetim paneli kullanıcı adı ve şifreyle korunur. Oturumun sürdürülmesi için zorunlu
-            bir oturum çerezi kullanılır. Şifrenin özeti, süreli oturum kayıtları ve giriş denemesi
+            Yönetim paneli kullanıcı adı ve şifreyle korunur. Oturumun sürdürülmesi için zorunlu bir
+            oturum çerezi kullanılır. Şifrenin özeti, süreli oturum kayıtları ve giriş denemesi
             sınırları güvenli erişim için; içerikler, taslaklar ve son kayıt zamanı ise siteyi
             güncel tutmak için saklanır.
           </p>
@@ -248,4 +248,3 @@ export function Policy({ kind }: { kind: string }) {
     </div>
   );
 }
-

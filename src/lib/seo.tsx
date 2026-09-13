@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { site } from '@/config/site';
+import { site, socialImage } from '@/config/site';
 export function metadataFor(
   title: string,
   description: string,
@@ -9,17 +9,18 @@ export function metadataFor(
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: new URL(path, site.url).href },
     openGraph: {
       title: `${title} | ${site.name}`,
       description,
-      url: path,
+      url: new URL(path, site.url).href,
+      images: [socialImage],
       siteName: site.name,
       locale: 'tr_TR',
       type: 'website',
     },
-    twitter: { card: 'summary', title, description },
-    ...(noindex ? { robots: { index: false, follow: true } } : {}),
+    twitter: { card: 'summary_large_image', title, description, images: [socialImage.url] },
+    robots: { index: site.isIndexable && !noindex, follow: true },
   };
 }
 export function JsonLd({ data }: { data: Record<string, unknown> }) {

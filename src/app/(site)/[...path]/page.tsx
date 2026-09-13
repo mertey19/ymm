@@ -1,3 +1,4 @@
+import { site, socialImage, hasContactChannels } from '@/config/site';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { pages } from '@/data/pages';
@@ -16,10 +17,12 @@ import { PublicationBrowser } from '@/components/publication-browser';
 import { PublicationDetail } from '@/components/publication-detail';
 import { ServiceDetail } from '@/components/service-detail';
 import { BreadcrumbSchema, metadataFor } from '@/lib/seo';
+import { pageIsIndexable } from '@/lib/page-visibility';
 type Props = { params: Promise<{ path: string[] }> };
 export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { services, publications } = await publicContent();
+  const content = await publicContent();
+  const { services, publications } = content;
   const { path } = await params;
   const route = path.join('/');
   const service = services.find((s) => route === `hizmetler/${s.slug}`);
@@ -32,7 +35,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: 'article',
         title: publication.title,
         description: publication.description,
-        url: `/${route}/`,
+        url: `${site.url}/${route}/`,
+        images: [socialImage],
         publishedTime: publication.date,
         locale: 'tr_TR',
       },
@@ -43,12 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       page.label === 'Hakkımızda' ? 'Hakkımızda — Deneyim ve Güvenle' : page.title,
       page.description,
       `/${route}/`,
-      page.noindex,
+      !pageIsIndexable(page, content),
     );
   return { title: 'Sayfa Bulunamadı', robots: { index: false } };
 }
 export default async function ContentPage({ params }: Props) {
-  const { services, publications } = await publicContent();
+  const { services, publications, settings } = await publicContent();
   const { path } = await params;
   const route = path.join('/');
   const service = services.find((s) => route === `hizmetler/${s.slug}`);
@@ -100,7 +104,7 @@ export default async function ContentPage({ params }: Props) {
       content = <TeamPage />;
       break;
     case 'hizmetlerimiz':
-      content = <ServiceCards items={services} />;
+      content = <ServiceCards items={services} headingLevel={2} />;
       break;
     case 'sirkulerler':
     case 'makaleler':
@@ -134,7 +138,9 @@ export default async function ContentPage({ params }: Props) {
       <section className="section">
         <div className="container">{content}</div>
       </section>
-      {!['iletisim', 'kvkk', 'gizlilik-politikasi', 'cerez-politikasi'].includes(route) && <CTA />}
+      {!['iletisim', 'kvkk', 'gizlilik-politikasi', 'cerez-politikasi'].includes(route) && (
+        <CTA enabled={hasContactChannels(settings)} />
+      )}
     </>
   );
 }

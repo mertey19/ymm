@@ -1,7 +1,7 @@
 import { chromium, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs/promises';
-const origin='http://127.0.0.1:3000';
+const origin=process.env.QA_URL || 'http://127.0.0.1:3002';
 const browser=await chromium.launch();
 const context=await browser.newContext();
 const page=await context.newPage();
@@ -24,6 +24,7 @@ try {
   const session=(await context.cookies()).find(c=>c.name==='karen_admin');expect(session.httpOnly).toBe(true);expect(session.sameSite).toBe('Strict');
   await page.locator('.admin-shell[data-ready=true]').waitFor();
   initial=await (await api('/api/admin/content/')).json();
+  expect(initial.data.publications.filter(p=>p.demo).every(p=>!p.published)).toBe(true);
   expect((await put(initial,{Origin:'https://untrusted.example'})).status()).toBe(403);
   expect((await put({revision:initial.revision,data:{}})).status()).toBe(400);
   await page.getByRole('button',{name:'Site & iletişim',exact:true}).click();
@@ -39,7 +40,8 @@ try {
   expect((await api('/makaleler/qa-kalici-yayin/')).status()).toBe(404);
   state.data.publications.at(-1).published=true;response=await put(state);expect(response.status()).toBe(200);state=await response.json();
   const html=await (await api('/makaleler/qa-kalici-yayin/')).text();expect(html).toContain('QA kalıcı yayın');expect(html).toContain('Bu içerik yalnızca yerel test verisidir.');
-  expect(await (await api('/sitemap.xml')).text()).toContain('/makaleler/qa-kalici-yayin/');
+  expect(await (await api('/sitemap.xml')).text()).not.toContain('<loc>');
+  state.data.publications.at(-1).demo=true; expect((await put(state)).status()).toBe(400); state.data.publications.at(-1).demo=false;
   state.data.publications.pop();response=await put(state);expect(response.status()).toBe(200);expect((await api('/makaleler/qa-kalici-yayin/')).status()).toBe(404);
   await page.reload();await page.locator('.admin-shell[data-ready=true]').waitFor();
   for(const width of [390,768,1440]){

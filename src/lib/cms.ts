@@ -21,23 +21,28 @@ export const defaultContent: CmsDocument = {
       'Karen YMM; yeminli mali müşavirlik, vergi, tasdik, denetim ve mali danışmanlık alanlarında işletmelerin ihtiyaçlarını bütüncül bir bakışla ele alır. Çalışmalarımızın başlangıç noktası, işinizi ve kararlarınızın mali boyutunu anlamaktır.\n\nMesleki etik ve bağımsızlık anlayışıyla, değerlendirmelerimizi bilgi ve belgelere dayandırırız. Süreçlerin her aşamasında sorumlulukların açık olmasına, düzenli iletişime ve gizliliğe önem veririz.\n\nMevzuattaki ve iş dünyasındaki gelişmeleri izler; bulgularımızı işletmenizin anlayabileceği, değerlendirebileceği ve uygulayabileceği bir çerçevede paylaşırız.',
   },
   services,
-  publications: publications.map((p) => ({ ...p, published: true })),
+  publications: publications.map((p) => ({ ...p, published: false })),
   team: [],
 };
 export async function readContent(): Promise<CmsState> {
   const row = await database()
     .prepare('SELECT document, revision, updated_at FROM content WHERE id = 1')
     .first<{ document: string; revision: number; updated_at: string }>();
-  return row
+  const state: CmsState = row
     ? { data: JSON.parse(row.document), revision: row.revision, updatedAt: row.updated_at }
     : { data: defaultContent, revision: 0, updatedAt: null };
+  // Existing demo records remain editable, but are always treated as drafts.
+  state.data.publications = state.data.publications.map((p) =>
+    p.demo ? { ...p, published: false } : p,
+  );
+  return state;
 }
 export async function publicContent() {
   const { data } = await readContent();
   return {
     ...data,
     publications: data.publications
-      .filter((p) => p.published)
+      .filter((p) => p.published && !p.demo)
       .sort((a, b) => b.date.localeCompare(a.date)),
     team: data.team.filter((t) => t.published),
   };

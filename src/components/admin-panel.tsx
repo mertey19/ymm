@@ -159,7 +159,11 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
   function updatePublication(key: string, value: unknown) {
     edit({
       ...data,
-      publications: data.publications.map((p, i) => (i === selected ? { ...p, [key]: value } : p)),
+      publications: data.publications.map((p, i) =>
+        i === selected
+          ? { ...p, [key]: value, ...(key === 'demo' && value ? { published: false } : {}) }
+          : p,
+      ),
     });
   }
   function updateMember(key: string, value: unknown) {
@@ -400,8 +404,8 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
                       onChange={(v) => updateSettings('workingHours', v)}
                     />
                     <div className="admin-note">
-                      Boş bırakılan alanlar ziyaretçilere “Bilgi güncellemesi hazırlanıyor” olarak
-                      gösterilir.
+                      Boş bırakılan alanlar ziyaretçilere gösterilmez. Doğrulanmış bir iletişim
+                      kanalı eklediğinizde ilgili iletişim çağrıları da görünür olur.
                     </div>
                   </section>
                 </div>
@@ -684,6 +688,7 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
                           <input
                             type="checkbox"
                             checked={publication.published}
+                            disabled={publication.demo}
                             onChange={(e) => updatePublication('published', e.target.checked)}
                           />{' '}
                           Yayında — kaydedildiğinde sitede görünür
@@ -692,7 +697,9 @@ export function AdminPanel({ initial, name }: { initial: CmsState; name: string 
                           <input
                             type="checkbox"
                             checked={publication.demo}
-                            onChange={(e) => updatePublication('demo', e.target.checked)}
+                            onChange={(e) => {
+                              updatePublication('demo', e.target.checked);
+                            }}
                           />{' '}
                           Örnek içerik olarak işaretle
                         </label>

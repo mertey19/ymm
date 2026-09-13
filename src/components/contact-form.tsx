@@ -14,7 +14,13 @@ const initial: ContactValues = {
   consent: false,
   website: '',
 };
-export function ContactForm({ subjects }: { subjects: string[] }) {
+export function ContactForm({
+  subjects,
+  endpoint = site.contactEndpoint,
+}: {
+  subjects: string[];
+  endpoint?: string;
+}) {
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactValues, string>>>({});
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
@@ -30,6 +36,11 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (state === 'loading') return;
+    if (values.website) {
+      setState('error');
+      setFeedback('Mesajınız gönderilemedi.');
+      return;
+    }
     const found = validateContact(values);
     setErrors(found);
     if (Object.keys(found).length) {
@@ -38,7 +49,7 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
       document.getElementById(`contact-${Object.keys(found)[0]}`)?.focus();
       return;
     }
-    if (!site.contactEndpoint) {
+    if (!endpoint) {
       setState('error');
       setFeedback(
         'Mesajınız gönderilmedi. Çevrimiçi iletişim hizmeti henüz kullanıma açılmadı. Lütfen iletişim bilgilerimiz yayımlandığında doğrudan bize ulaşın.',
@@ -48,7 +59,7 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
     setState('loading');
     setFeedback('Mesajınız gönderiliyor…');
     try {
-      const response = await fetch(site.contactEndpoint, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -81,7 +92,7 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
     <form className="contact-form" onSubmit={submit} noValidate aria-busy={state === 'loading'}>
       <h2>Birlikte değerlendirelim</h2>
       <p className="form-note">İhtiyacınızı paylaşın. * işaretli alanlar zorunludur.</p>
-      {!site.contactEndpoint && (
+      {!endpoint && (
         <div className="sample-notice">
           Çevrimiçi mesaj gönderimi henüz kullanıma açılmamıştır. Bu form üzerinden bilgi iletilmez.
         </div>
@@ -217,4 +228,3 @@ export function ContactForm({ subjects }: { subjects: string[] }) {
     </form>
   );
 }
-

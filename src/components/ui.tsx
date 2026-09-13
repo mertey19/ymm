@@ -1,6 +1,5 @@
 import Link from '@/components/site-link';
 import {
-  ArrowRight,
   ArrowUpRight,
   Check,
   ChevronDown,
@@ -45,7 +44,14 @@ export function SectionHeading({
     </div>
   );
 }
-export function ServiceCards({ items }: { items: Service[] }) {
+export function ServiceCards({
+  items,
+  headingLevel = 3,
+}: {
+  items: Service[];
+  headingLevel?: 2 | 3;
+}) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3';
   return (
     <div className="service-grid">
       {items.map((s, i) => {
@@ -56,9 +62,9 @@ export function ServiceCards({ items }: { items: Service[] }) {
               <Icon size={29} strokeWidth={1.35} />
               <span>{String(i + 1).padStart(2, '0')}</span>
             </div>
-            <h3>
+            <Heading>
               <Link href={`/hizmetler/${s.slug}`}>{s.title}</Link>
-            </h3>
+            </Heading>
             <p>{s.intro}</p>
             <TextLink href={`/hizmetler/${s.slug}`}>Detaylı Bilgi</TextLink>
           </article>
@@ -67,7 +73,14 @@ export function ServiceCards({ items }: { items: Service[] }) {
     </div>
   );
 }
-export function PublicationCard({ item }: { item: Publication }) {
+export function PublicationCard({
+  item,
+  headingLevel = 3,
+}: {
+  item: Publication;
+  headingLevel?: 2 | 3;
+}) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3';
   return (
     <article className="publication-card">
       <div className="publication-meta">
@@ -81,11 +94,11 @@ export function PublicationCard({ item }: { item: Publication }) {
           }).format(new Date(item.date))}
         </time>
       </div>
-      <h3>
+      <Heading>
         <Link href={`/${item.kind}/${item.slug}`}>{item.title}</Link>
-      </h3>
+      </Heading>
       <p>{item.description}</p>
-      <small className="sample-label">{item.demo && publicationNotice}</small>
+      {item.demo && <small className="sample-label">{publicationNotice}</small>}
       <TextLink href={`/${item.kind}/${item.slug}`}>Devamını Oku</TextLink>
     </article>
   );
@@ -118,7 +131,8 @@ export function CheckList({ items }: { items: string[] }) {
     </ul>
   );
 }
-export function CTA() {
+export function CTA({ enabled = false }: { enabled?: boolean }) {
+  if (!enabled) return null;
   return (
     <section className="cta-section">
       <div className="container cta-inner">
@@ -191,11 +205,6 @@ export function EmptyState({ title, description }: { title: string; description:
       <FileCheck2 size={36} strokeWidth={1} />
       <h2>{title}</h2>
       <p>{description}</p>
-      <Link className="text-link" href="/iletisim">
-        İletişim bilgileri
-        <ArrowRight size={16} />
-      </Link>
     </div>
   );
 }
-
