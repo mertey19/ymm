@@ -1,6 +1,6 @@
 # Karen YMM — teslim öncesi kontrol
 
-13 Eylül 2026. Değişiklikler yerel projeye uygulandı. Push, deploy veya canlı veritabanında değişiklik yapılmadı.
+13 Eylül 2026. Denetim düzeltmelerinin ardından uygulama Vercel'in standart Next.js Node.js çalışma ortamına ve Turso/libSQL veritabanına uyarlandı. Kod `codex/karen-ymm` dalına gönderildi ve Vercel önizleme derlemesi başarıyla tamamlandı; ana üretim dağıtımı ve üretim veritabanı değiştirilmedi.
 
 ## Düzeltilenler
 
@@ -8,11 +8,12 @@
 - **Sosyal paylaşım:** `public/og.png` tam **1200×630**. Open Graph ve Twitter büyük kart metadata bağlantıları aynı dosyaya gidiyor. Favicon HTTP 200. Yapılandırılmış veride bilinmeyen hukuki unvan, adres, telefon, değerlendirme veya mesleki ruhsat eklenmedi.
 - **Demo ve panel:** `src/lib/cms.ts`, `cms-schema.ts`, `admin-panel.tsx`: örnek yayınlar silinmeden taslak olarak ele alınıyor; doğrudan adresleri 404. Önceden veritabanına “yayında” kaydedilmiş demolar da gizleniyor. Panel ve API örnek içeriğin yayımlanmasını engelliyor. Gerçek içerik ayrıca hazırlanıp örnek işareti kaldırıldığında yayımlanabilir.
 - **İçerik / iletişim:** Anasayfa hizmetler → yaklaşım → çalışma süreci sırasına sadeleştirildi. Tekrarlayan bölümler, boş yayın alanları, doğrulanmamış ekip bağlantıları, boş telefon/e-posta/adres satırları ve karşılığı olmayan iletişim çağrıları gizlendi. Footer sütunları mevcut içeriğe uyarlanıyor. Gerçek bir gönderim adresi yapılandırılana kadar form ziyaretçiye gösterilmiyor; kısa durum açıklaması var. İlgili dosyalar: `src/app/(site)/page.tsx`, site layout, `header`, `footer`, `institutional-pages`, `service-detail`, `publication-browser`, `ui` bileşenleri.
-- **Görseller / erişilebilirlik:** `responsive-image.tsx` gerçek WebP varyantlarını doğrudan `srcset` ile sunuyor; runtime’ın ek görüntü yönlendirmesine ihtiyaç kalmadı. Hero öncelikli, aşağıdaki görsel lazy-load; boyutlar ve yerleşim alanları tanımlı. Hizmet/yayın listelerinde başlık sırası düzeltildi; footer bağlantıları en az 44 px dokunma yüksekliğine çıkarıldı (`globals.css`). Yeni bağımlılık eklenmedi; mevcut normal bağlantılar ve yönetim paneli mimarisi korundu.
+- **Görseller / erişilebilirlik:** `responsive-image.tsx` gerçek WebP varyantlarını doğrudan `srcset` ile sunuyor; runtime’ın ek görüntü yönlendirmesine ihtiyaç kalmadı. Hero öncelikli, aşağıdaki görsel lazy-load; boyutlar ve yerleşim alanları tanımlı. Hizmet/yayın listelerinde başlık sırası düzeltildi; footer bağlantıları en az 44 px dokunma yüksekliğine çıkarıldı (`globals.css`). Vercel uyarlaması için yalnızca `@libsql/client` üretim bağımlılığı eklendi.
+- **Vercel altyapısı:** `src/lib/database.ts`, içerik ve yönetici oturumlarını Turso/libSQL üzerinde saklıyor; tablolar ilk istekte tekrar çalıştırılabilir SQL ile kuruluyor. Yerel geliştirme ayrı bir dosya veritabanı kullanıyor. Vercel'de Turso değişkenleri eksikse halka açık sayfalar başlangıç içeriğiyle çalışıyor, yönetici girişi ise kalıcı olmayan veri kullanımını önlemek için açık bir `503` hatası veriyor. Origin denetimi Vercel'in yönlendirme başlıklarıyla uyumlu hale getirildi.
 
 ## Test kanıtları
 
-Testler production build üzerinde, ayrı yerel D1 veritabanında (`.sites-runtime/audit/state`, port 3002) çalıştı. Kullanıcının `.dev.vars` dosyası ve normal yerel veritabanı değiştirilmedi.
+Testler standart Next.js production build üzerinde, ayrı yerel libSQL veritabanında (`.sites-runtime/audit/vercel-test.db`, port 3002) çalıştı. Kullanıcının `.dev.vars` dosyası ve normal yerel veritabanı değiştirilmedi.
 
 | Kontrol | Sonuç |
 | --- | --- |
@@ -43,7 +44,7 @@ Kanıtlar: `test-results/qa-report.json`, `contact-qa.json`, `lighthouse-mobile.
 ## Eksikler ve yayın engelleri
 
 1. **Nihai alan adı belirlenmedi.** İndekslemeye açılış, alan adı / DNS / HTTPS kontrolü ve o adreste yeniden SEO testi bekliyor.
-2. **Hedef barındırma uyumu:** Canlı adres Vercel; mevcut kaynak ise Vinext / Cloudflare Worker ve D1 kullanıyor (`vite.config.ts`, `.openai/hosting.json`, `src/lib/cms.ts`). Bu backend Vercel’de doğrudan çalışmaz. Vercel hedefleniyorsa veritabanı ve oturum erişimi uyarlanmalı; aksi halde mevcut Worker/D1 barındırması kullanılmalı. Bu denetimde altyapı taşınmadı ve canlıya çıkılmadı.
+2. **Üretim veritabanı:** Kaynak Vercel/Turso için hazır. Vercel Marketplace'ten Turso bağlanıp `TURSO_DATABASE_URL` ve `TURSO_AUTH_TOKEN`, ayrıca secret olarak `ADMIN_PASSWORD_HASH` tanımlanmadan yönetici girişi etkinleşmez. Önceki D1 içeriği gerekiyorsa ayrıca dışa aktarılıp Turso'ya taşınmalıdır.
 3. **Şirket bilgileri:** Doğrulanmış telefon, e-posta, adres, çalışma saatleri, tam hukuki unvan; isteniyorsa gerçek ekip/ortak özgeçmişleri ve gerçek yayınlar gerekli. Eksik ekip ve yayınlar genel yayını zorunlu olarak engellemez; ilgili alanlar gizli kalabilir.
 4. **İletişim:** Gerçek alıcı, gönderim endpoint’i, sunucuda doğrulama/spam ve hız sınırları ile gerçek veri akışına uygun KVKK/gizlilik metinleri tamamlanmadan form etkinleştirilmemeli. Gerçek e-posta teslimatı test edilmedi.
-5. **Son canlı kontrol:** Vercel’de görülen eski canonical bu yerel değişiklikle kendiliğinden güncellenmez. Kullanıcı talimatı gereği deploy yapılmadığı için yeni sürümün canlı domain, DNS, CDN ve üretim sırlarıyla uçtan uca testi yapılmadı. Mevcut Vinext beta derlemesi route sınıflandırması hakkında bilgilendirme veriyor; yerel endpoint testleri başarılı.
+5. **Son canlı kontrol:** Vercel’de görülen eski canonical bu kod değişikliğiyle kendiliğinden güncellenmez. Turso ve üretim sırları tanımlanıp yeni sürüm dağıtıldıktan sonra canlı domain, CDN, yönetici girişi ve kalıcı kayıt uçtan uca doğrulanmalıdır.

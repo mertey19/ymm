@@ -1,6 +1,7 @@
 import { adminIdentity } from '@/lib/admin-auth';
 import { readContent, writeContent } from '@/lib/cms';
 import { cmsSchema } from '@/lib/cms-schema';
+import { isSameOrigin } from '@/lib/request-security';
 export const dynamic = 'force-dynamic';
 const json = (data: unknown, status = 200) =>
   Response.json(data, {
@@ -37,8 +38,7 @@ export async function PUT(request: Request) {
       chunks.push(value);
     }
     if (!allowed) return json({ error: 'Yönetici erişimi gerekli.' }, user ? 403 : 401);
-    if (request.headers.get('origin') !== new URL(request.url).origin)
-      return json({ error: 'Geçersiz istek kaynağı.' }, 403);
+    if (!isSameOrigin(request)) return json({ error: 'Geçersiz istek kaynağı.' }, 403);
     if (!request.headers.get('content-type')?.includes('application/json'))
       return json({ error: 'JSON gerekli.' }, 415);
     const bytes = new Uint8Array(size);

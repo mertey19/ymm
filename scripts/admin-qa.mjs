@@ -18,7 +18,9 @@ try {
   await page.getByLabel('Kullanıcı adı',{exact:true}).fill('admin');
   await page.getByLabel('Şifre',{exact:true}).fill('wrong-password');
   await page.getByRole('button',{name:'Giriş yap',exact:true}).click();
-  await expect(page.getByRole('alert')).toHaveText('Kullanıcı adı veya şifre hatalı.');
+  await expect(page.locator('.admin-notice[role="alert"]')).toHaveText(
+    'Kullanıcı adı veya şifre hatalı.',
+  );
   await page.getByLabel('Şifre',{exact:true}).fill('Local-Test-Password-Only');
   await page.getByRole('button',{name:'Giriş yap',exact:true}).click();await expect(page.getByRole('heading',{name:'Genel bakış',exact:true})).toBeVisible();
   const session=(await context.cookies()).find(c=>c.name==='karen_admin');expect(session.httpOnly).toBe(true);expect(session.sameSite).toBe('Strict');

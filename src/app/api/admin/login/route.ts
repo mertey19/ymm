@@ -1,4 +1,5 @@
 import { allowLoginAttempt, issueSession, sessionCookie, verifyPassword } from '@/lib/admin-auth';
+import { isSameOrigin } from '@/lib/request-security';
 export const dynamic = 'force-dynamic';
 const reply = (data: unknown, status = 200, extra: Record<string, string> = {}) =>
   Response.json(data, { status, headers: { 'Cache-Control': 'private, no-store', ...extra } });
@@ -20,8 +21,7 @@ export async function POST(request: Request) {
       raw += decoder.decode(value, { stream: true });
     }
     raw += decoder.decode();
-    if (request.headers.get('origin') !== new URL(request.url).origin)
-      return reply({ error: 'Geçersiz istek kaynağı.' }, 403);
+    if (!isSameOrigin(request)) return reply({ error: 'Geçersiz istek kaynağı.' }, 403);
     if (!request.headers.get('content-type')?.includes('application/json'))
       return reply({ error: 'Geçersiz istek.' }, 415);
     if (!(await allowLoginAttempt(request)))

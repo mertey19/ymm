@@ -1,12 +1,8 @@
-import { env } from 'cloudflare:workers';
 import { services } from '@/data/services';
 import { publications } from '@/data/publications';
 import { site } from '@/config/site';
 import type { CmsDocument, CmsState } from './cms-schema';
-export function database() {
-  if (!env.DB) throw new Error('CMS database binding is unavailable');
-  return env.DB;
-}
+import { database, hasDatabaseConfiguration } from './database';
 export const defaultContent: CmsDocument = {
   settings: {
     phone: site.phone,
@@ -25,9 +21,11 @@ export const defaultContent: CmsDocument = {
   team: [],
 };
 export async function readContent(): Promise<CmsState> {
-  const row = await database()
-    .prepare('SELECT document, revision, updated_at FROM content WHERE id = 1')
-    .first<{ document: string; revision: number; updated_at: string }>();
+  const result = await (
+    await database()
+  ).execute('SELECT document, revision, updated_at FROM content WHERE id = 1');
+  const row = result.rows[0] as unknown as
+    { document: string; revision: number; updated_at: string } | undefined;
   const state: CmsState = row
     ? { data: JSON.parse(row.document), revision: row.revision, updatedAt: row.updated_at }
     : { data: defaultContent, revision: 0, updatedAt: null };
@@ -38,7 +36,9 @@ export async function readContent(): Promise<CmsState> {
   return state;
 }
 export async function publicContent() {
-  const { data } = await readContent();
+  const { data } = hasDatabaseConfiguration()
+    ? await readContent()
+    : { data: defaultContent };
   return {
     ...data,
     publications: data.publications
@@ -49,22 +49,18 @@ export async function publicContent() {
 }
 export async function writeContent(data: CmsDocument, revision: number) {
   const updatedAt = new Date().toISOString();
-  const db = database();
+  const db = await database();
   // Compare-and-swap prevents two open editor tabs from silently overwriting each other.
   const result =
     revision === 0
-      ? await db
-          .prepare(
-            'INSERT INTO content (id, document, revision, updated_at) VALUES (1, ?, 1, ?) ON CONFLICT(id) DO NOTHING',
-          )
-          .bind(JSON.stringify(data), updatedAt)
-          .run()
-      : await db
-          .prepare(
-            'UPDATE content SET document = ?, revision = revision + 1, updated_at = ? WHERE id = 1 AND revision = ?',
-          )
-          .bind(JSON.stringify(data), updatedAt, revision)
-          .run();
-  if (result.meta.changes !== 1) return null;
+      ? await db.execute({
+          sql: 'INSERT INTO content (id, document, revision, updated_at) VALUES (1, ?, 1, ?) ON CONFLICT(id) DO NOTHING',
+          args: [JSON.stringify(data), updatedAt],
+        })
+      : await db.execute({
+          sql: 'UPDATE content SET document = ?, revision = revision + 1, updated_at = ? WHERE id = 1 AND revision = ?',
+          args: [JSON.stringify(data), updatedAt, revision],
+        });
+  if (result.rowsAffected !== 1) return null;
   return { data, revision: revision + 1, updatedAt };
 }
